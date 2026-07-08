@@ -3,8 +3,12 @@ import { PageHeader } from "@/components/layout/page-header";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { auth, signOut } from "@/lib/auth";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const session = await auth();
+  const accountLabel = session?.user?.email ?? session?.user?.name ?? "Signed in";
+
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
       <PageHeader title="Settings" description="Account, sync, and local app preferences." />
@@ -14,10 +18,18 @@ export default function SettingsPage() {
             <CardTitle>Account</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
-            <p>Signed-in account appears here after Phase 2.</p>
-            <Button variant="outline" disabled>
-              Sign out
-            </Button>
+            <p>{accountLabel}</p>
+            <form
+              action={async () => {
+                "use server";
+
+                await signOut({ redirectTo: "/login" });
+              }}
+            >
+              <Button variant="outline" type="submit">
+                Sign out
+              </Button>
+            </form>
           </CardContent>
         </Card>
 

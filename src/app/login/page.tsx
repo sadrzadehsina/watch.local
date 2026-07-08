@@ -1,7 +1,15 @@
 import { Chrome } from "lucide-react";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { auth, signIn } from "@/lib/auth";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const session = await auth();
+
+  if (session?.user) {
+    redirect("/feed");
+  }
+
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-12">
       <section className="w-full max-w-sm space-y-8 text-center">
@@ -15,13 +23,21 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <Button className="w-full" size="lg" disabled>
-          <Chrome className="mr-2 h-4 w-4" aria-hidden="true" />
-          Sign in with Google
-        </Button>
+        <form
+          action={async () => {
+            "use server";
+
+            await signIn("google", { redirectTo: "/feed" });
+          }}
+        >
+          <Button className="w-full" size="lg" type="submit">
+            <Chrome className="mr-2 h-4 w-4" aria-hidden="true" />
+            Sign in with Google
+          </Button>
+        </form>
 
         <p className="text-xs leading-5 text-muted-foreground">
-          Google OAuth is wired in Phase 2. This screen is the Phase 1 shell.
+          Uses read-only YouTube access. Tokens stay on the server.
         </p>
       </section>
     </main>

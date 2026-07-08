@@ -1026,3 +1026,60 @@ Notes:
 - Google OAuth, Prisma, and real YouTube sync begin in later phases.
 - The Phase 1 feed uses placeholder cards only so the navigation and UI shell can be verified.
 - Dependency installation could not be completed in this environment because `npm install` failed with repeated `ECONNRESET` network errors.
+
+### Phase 2 - Database and Auth
+
+Completed:
+
+- Added Prisma and Auth.js / NextAuth dependencies to `package.json`.
+- Added a PostgreSQL Prisma schema with Auth.js adapter models plus Watch.local `Channel`, `ChannelSubscription`, `Video`, `SavedVideo`, and `SyncState` models.
+- Added the initial Prisma migration for the Phase 2 schema.
+- Added a shared Prisma client helper.
+- Added Google OAuth through Auth.js with the read-only YouTube scope:
+
+```txt
+https://www.googleapis.com/auth/youtube.readonly
+```
+
+- Added `/api/auth/[...nextauth]`.
+- Updated `/login` to start Google sign-in.
+- Protected authenticated app routes and redirected unauthenticated users to `/login`.
+- Updated the app shell and settings page with signed-in account display and sign-out actions.
+- Updated Docker startup to apply Prisma migrations before running the Next.js dev server.
+
+Required `.env` values:
+
+```bash
+DATABASE_URL="postgresql://watch:watch@postgres:5432/watchlocal?schema=public"
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="replace-me"
+GOOGLE_CLIENT_ID="replace-me"
+GOOGLE_CLIENT_SECRET="replace-me"
+YOUTUBE_API_KEY="optional-for-public-requests"
+```
+
+Google Cloud redirect URI:
+
+```txt
+http://localhost:3000/api/auth/callback/google
+```
+
+Run locally:
+
+```bash
+npm install
+npm run db:migrate
+npm run dev
+```
+
+Run with Docker:
+
+```bash
+docker compose up --build
+```
+
+Notes:
+
+- `docker compose up --build` runs `npx prisma migrate deploy` before starting the app.
+- You must replace the Google OAuth placeholders before sign-in can complete.
+- Dependency installation and runtime auth testing were not completed in this environment because the npm install request was declined after earlier network resets.

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Bookmark, Clapperboard, Home, Radio, Settings } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { signOut } from "@/lib/auth";
 
 const navItems = [
   { href: "/feed", label: "Feed", icon: Home },
@@ -10,7 +11,17 @@ const navItems = [
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) {
+type AppShellProps = Readonly<{
+  children: React.ReactNode;
+  user: {
+    name?: string | null;
+    email?: string | null;
+  };
+}>;
+
+export function AppShell({ children, user }: AppShellProps) {
+  const displayName = user.name ?? user.email ?? "Local user";
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
@@ -22,9 +33,20 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
             Watch.local
           </Link>
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="ghost" size="sm" disabled>
-              Local user
-            </Button>
+            <span className="hidden max-w-48 truncate text-sm text-muted-foreground sm:inline">
+              {displayName}
+            </span>
+            <form
+              action={async () => {
+                "use server";
+
+                await signOut({ redirectTo: "/login" });
+              }}
+            >
+              <Button variant="ghost" size="sm" type="submit">
+                Sign out
+              </Button>
+            </form>
             <ThemeToggle />
           </div>
         </div>
