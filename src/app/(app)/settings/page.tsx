@@ -1,17 +1,19 @@
 import { Database, RefreshCw } from "lucide-react";
-import { syncSubscriptionsAction } from "@/app/actions/sync";
+import { syncSubscriptionsAction, syncVideosAction } from "@/app/actions/sync";
 import { PageHeader } from "@/components/layout/page-header";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth, signOut } from "@/lib/auth";
-import { SUBSCRIPTIONS_SYNC_TYPE } from "@/lib/sync";
+import { SUBSCRIPTIONS_SYNC_TYPE, VIDEOS_SYNC_TYPE } from "@/lib/sync";
 import { prisma } from "@/lib/prisma";
 
 type SettingsPageProps = {
   searchParams: Promise<{
     subscriptionSync?: string;
     count?: string;
+    videoSync?: string;
+    errors?: string;
     message?: string;
   }>;
 };
@@ -30,16 +32,42 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
         },
       })
     : null;
+  const videoSyncState = session?.user?.id
+    ? await prisma.syncState.findUnique({
+        where: {
+          userId_type: {
+            userId: session.user.id,
+            type: VIDEOS_SYNC_TYPE,
+          },
+        },
+      })
+    : null;
 
   const lastSubscriptionSync = subscriptionSyncState?.lastSyncedAt
     ? subscriptionSyncState.lastSyncedAt.toLocaleString()
     : "not yet";
-  const syncMessage =
-    params.subscriptionSync === "success"
-      ? `Synced ${params.count ?? "0"} subscribed channels.`
-      : params.subscriptionSync === "error"
-        ? params.message ?? "Subscription sync failed."
-        : null;
+  const lastVideoSync = videoSyncState?.lastSyncedAt
+    ? videoSyncState.lastSyncedAt.toLocaleString()
+    : "not yet";
+  let syncMessage: string | null = null;
+
+  if (params.subscriptionSync === "success") {
+    syncMessage = `Synced ${params.count ?? "0"} subscribed channels.`;
+  }
+
+  if (params.subscriptionSync === "error") {
+    syncMessage = params.message ?? "Subscription sync failed.";
+  }
+
+  if (params.videoSync === "success") {
+    const errorMessage =
+      params.errors && params.errors !== "0" ? ` with ${params.errors} channel errors` : "";
+    syncMessage = `Synced ${params.count ?? "0"} videos${errorMessage}.`;
+  }
+
+  if (params.videoSync === "error") {
+    syncMessage = params.message ?? "Video sync failed.";
+  }
 
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
@@ -77,9 +105,12 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             ) : null}
             <div className="space-y-1 text-sm text-muted-foreground">
               <p>Subscription sync: {lastSubscriptionSync}</p>
-              <p>Video sync: not yet</p>
+              <p>Video sync: {lastVideoSync}</p>
               {subscriptionSyncState?.error ? (
                 <p className="text-destructive">{subscriptionSyncState.error}</p>
+              ) : null}
+              {videoSyncState?.error ? (
+                <p className="whitespace-pre-line text-destructive">{videoSyncState.error}</p>
               ) : null}
             </div>
             <div className="flex flex-wrap gap-2">
@@ -89,10 +120,12 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
                   Sync subscriptions
                 </Button>
               </form>
-              <Button variant="outline" disabled>
-                <Database className="mr-2 h-4 w-4" aria-hidden="true" />
-                Sync videos
-              </Button>
+              <form action={syncVideosAction}>
+                <Button variant="outline" type="submit">
+                  <Database className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Sync videos
+                </Button>
+              </form>
             </div>
           </CardContent>
         </Card>

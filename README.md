@@ -1136,3 +1136,58 @@ Notes:
 - The sync is manual and cache-first by design; it does not call YouTube on every page load.
 - No new database migration was needed because the Phase 2 schema already included channel subscription tables.
 - Dependency installation and runtime YouTube API testing were not completed in this environment because the npm install request was declined.
+
+### Phase 4 - Video Sync and Feed
+
+Completed:
+
+- Added channel detail fetching through `channels.list` to discover each subscribed channel's uploads playlist.
+- Added latest upload fetching through `playlistItems.list`.
+- Added optional metadata enrichment through `videos.list` for duration, statistics, and richer thumbnails.
+- Added `syncLatestVideosForUser(userId)` in `src/lib/sync.ts`.
+- Video sync reads locally synced subscribed channels, fills missing upload playlist IDs, fetches the latest uploads, and upserts videos into the local database.
+- Video sync records last-sync time, partial channel failures, and sync errors in `SyncState`.
+- Added `POST /api/sync/videos`.
+- Added `GET /api/videos` for the authenticated local feed.
+- Updated `/feed` to load videos from PostgreSQL instead of placeholder cards.
+- Added a working feed refresh action.
+- Updated video cards to show real thumbnails, channel titles, publish dates, and YouTube durations.
+- Updated `/settings` with video sync status and a manual "Sync videos" action.
+
+YouTube calls used:
+
+```txt
+channels.list part=contentDetails,snippet id=<channelIds>
+playlistItems.list part=snippet,contentDetails playlistId=<uploadsPlaylistId> maxResults=10
+videos.list part=snippet,contentDetails,statistics id=<videoIds>
+```
+
+Run:
+
+```bash
+npm install
+npm run db:migrate
+npm run dev
+```
+
+Then:
+
+1. Sign in with Google.
+2. Sync subscriptions from `/settings` or `/channels`.
+3. Open `/feed`.
+4. Click "Refresh" to sync recent uploads.
+
+API test after sign-in:
+
+```bash
+curl -X POST http://localhost:3000/api/sync/videos
+curl http://localhost:3000/api/videos
+```
+
+Notes:
+
+- The feed is local-cache-first and does not call YouTube on every page load.
+- Each video sync fetches up to 10 latest videos per subscribed channel to keep quota usage reasonable.
+- If one channel fails, the sync records a partial error and continues with the other channels.
+- No new database migration was needed because the Phase 2 schema already included `Video` and upload playlist fields.
+- Dependency installation and runtime YouTube API testing were not completed in this environment because the local `node_modules` directory is incomplete and the required `tsc`/`prisma` binaries are unavailable.
