@@ -2,8 +2,9 @@ services:
   app:
     build:
       context: .
-    command: sh -c "npx prisma migrate deploy && npm run dev"
+    command: sh -c "npm run db:deploy && npm run dev"
     ports:
+      - "80:3000"
       - "3000:3000"
     environment:
       DATABASE_URL: postgresql://watch:watch@postgres:5432/watchlocal?schema=public

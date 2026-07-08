@@ -618,9 +618,9 @@ reverse-proxy
 - `app` runs Next.js.
 - `postgres` stores local data.
 - The app should be available on host port `3000`.
-- User can access `http://localhost:3000` and optionally `http://watch.localhost:3000`.
-
-For a cleaner `http://watch.local` without a port, add a small reverse proxy later.
+- The app should also publish host port `80` for no-port local domains.
+- User can access `http://localhost:3000`, `http://watch.localhost`, and optionally `http://watch.local`.
+- If port `80` is already used by another local dev server, stop that server or remove the `80:3000` mapping.
 
 ## 13. Environment Variables
 
@@ -1018,7 +1018,14 @@ Then visit:
 
 ```txt
 http://localhost:3000
-http://watch.localhost:3000
+http://watch.localhost
+http://watch.local
+```
+
+If `watch.local` does not resolve, add this to `/etc/hosts`:
+
+```txt
+127.0.0.1 watch.local
 ```
 
 Notes:
