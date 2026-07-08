@@ -22,6 +22,14 @@ export function formatRelativeDate(date: Date) {
   }).format(date);
 }
 
+export function formatDisplayDate(date: Date) {
+  return new Intl.DateTimeFormat("en", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
 export function formatIsoDuration(duration?: string | null) {
   if (!duration) {
     return null;

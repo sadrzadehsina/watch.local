@@ -1191,3 +1191,47 @@ Notes:
 - If one channel fails, the sync records a partial error and continues with the other channels.
 - No new database migration was needed because the Phase 2 schema already included `Video` and upload playlist fields.
 - Dependency installation and runtime YouTube API testing were not completed in this environment because the local `node_modules` directory is incomplete and the required `tsc`/`prisma` binaries are unavailable.
+
+### Phase 5 - Watch Page
+
+Completed:
+
+- Updated `/watch/[videoId]` to load the requested video from the local PostgreSQL cache.
+- The watch page only shows videos that belong to channels synced for the authenticated user.
+- Added the focused YouTube iframe embed:
+
+```txt
+https://www.youtube.com/embed/<videoId>
+```
+
+- Added title, channel, published date, duration, description, save-state display, and open-on-YouTube action.
+- Added a same-channel recent videos section.
+- Kept global recommendations out of the app UI; related videos are limited to the same synced channel.
+- Added `GET /api/videos/[videoId]` for authenticated local video details.
+
+Run:
+
+```bash
+npm install
+npm run db:migrate
+npm run dev
+```
+
+Then:
+
+1. Sign in with Google.
+2. Sync subscriptions.
+3. Sync videos.
+4. Open a video from `/feed`.
+
+API test after sign-in:
+
+```bash
+curl http://localhost:3000/api/videos/<videoId>
+```
+
+Notes:
+
+- Save/unsave actions remain disabled until Phase 6.
+- No new database migration was needed.
+- Typecheck/build verification could not be completed because the local `node_modules` directory is incomplete and the required `tsc`/`prisma` binaries are unavailable.
