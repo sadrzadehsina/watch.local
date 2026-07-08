@@ -1083,3 +1083,56 @@ Notes:
 - `docker compose up --build` runs `npx prisma migrate deploy` before starting the app.
 - You must replace the Google OAuth placeholders before sign-in can complete.
 - Dependency installation and runtime auth testing were not completed in this environment because the npm install request was declined after earlier network resets.
+
+### Phase 3 - Subscription Sync
+
+Completed:
+
+- Added a YouTube Data API helper in `src/lib/youtube.ts`.
+- Added server-side Google access-token retrieval from the Auth.js `Account` table.
+- Added Google access-token refresh using the stored refresh token when the access token is expired.
+- Added `fetchMySubscriptions(userId)` using `subscriptions.list` with:
+
+```txt
+part=snippet,contentDetails
+mine=true
+maxResults=50
+```
+
+- Added paginated subscription fetching with a safety limit.
+- Added `syncSubscriptionsForUser(userId)` in `src/lib/sync.ts`.
+- Upserts synced YouTube channels into `Channel`.
+- Upserts the local user-to-channel subscription relationship into `ChannelSubscription`.
+- Tracks subscription sync status, errors, and last sync time in `SyncState`.
+- Added `POST /api/sync/subscriptions`.
+- Added a server action for manual subscription sync.
+- Updated `/settings` with a working "Sync subscriptions" action and last-sync display.
+- Updated `/channels` to list locally synced subscribed channels with thumbnails, local video counts, and YouTube channel links.
+
+Run:
+
+```bash
+npm install
+npm run db:migrate
+npm run dev
+```
+
+Then:
+
+1. Visit `http://localhost:3000`.
+2. Sign in with Google.
+3. Open `/settings` or `/channels`.
+4. Click "Sync subscriptions".
+
+API test after sign-in:
+
+```bash
+curl -X POST http://localhost:3000/api/sync/subscriptions
+```
+
+Notes:
+
+- This phase syncs channels only. Video upload playlist lookup and feed video syncing begin in Phase 4.
+- The sync is manual and cache-first by design; it does not call YouTube on every page load.
+- No new database migration was needed because the Phase 2 schema already included channel subscription tables.
+- Dependency installation and runtime YouTube API testing were not completed in this environment because the npm install request was declined.
