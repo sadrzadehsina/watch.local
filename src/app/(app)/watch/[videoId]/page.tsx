@@ -1,9 +1,12 @@
 import Link from "next/link";
-import { Bookmark, ExternalLink, Radio } from "lucide-react";
+import { Bookmark, ExternalLink, Radio, Save } from "lucide-react";
 import { notFound } from "next/navigation";
+import { toggleSavedVideoAction, updateSavedVideoAction } from "@/app/actions/saved";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { VideoCard } from "@/components/video/video-card";
 import { auth } from "@/lib/auth";
 import { formatDisplayDate, formatIsoDuration } from "@/lib/date";
@@ -77,6 +80,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
   });
 
   const duration = formatIsoDuration(video.duration);
+  const savedVideo = video.savedBy[0];
 
   return (
     <div className="space-y-6 pb-20 lg:pb-0">
@@ -85,15 +89,19 @@ export default async function WatchPage({ params }: WatchPageProps) {
         description={`${video.channel.title} - ${formatDisplayDate(video.publishedAt)}`}
         actions={
           <>
-            <Button variant="outline" disabled>
-              <Bookmark
-                className={
-                  video.savedBy.length > 0 ? "mr-2 h-4 w-4 fill-current" : "mr-2 h-4 w-4"
-                }
-                aria-hidden="true"
-              />
-              {video.savedBy.length > 0 ? "Saved" : "Save"}
-            </Button>
+            <form action={toggleSavedVideoAction}>
+              <input type="hidden" name="videoId" value={video.id} />
+              <input type="hidden" name="returnTo" value={`/watch/${video.id}`} />
+              <Button variant="outline" type="submit">
+                <Bookmark
+                  className={
+                    video.savedBy.length > 0 ? "mr-2 h-4 w-4 fill-current" : "mr-2 h-4 w-4"
+                  }
+                  aria-hidden="true"
+                />
+                {video.savedBy.length > 0 ? "Saved" : "Save"}
+              </Button>
+            </form>
             <Button asChild variant="outline">
               <Link href={`https://www.youtube.com/watch?v=${videoId}`} target="_blank">
                 <ExternalLink className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -150,6 +158,35 @@ export default async function WatchPage({ params }: WatchPageProps) {
               </p>
             ) : null}
           </Card>
+
+          {savedVideo ? (
+            <Card className="p-5">
+              <div className="mb-4">
+                <h2 className="text-base font-semibold">Local note</h2>
+                <p className="text-sm text-muted-foreground">
+                  Stored in Watch.local, not in YouTube.
+                </p>
+              </div>
+              <form action={updateSavedVideoAction} className="space-y-3">
+                <input type="hidden" name="videoId" value={video.id} />
+                <input type="hidden" name="returnTo" value={`/watch/${video.id}`} />
+                <Textarea
+                  name="note"
+                  placeholder="Add a local note"
+                  defaultValue={savedVideo.note ?? ""}
+                />
+                <Input
+                  name="tags"
+                  placeholder="tags, separated, by commas"
+                  defaultValue={savedVideo.tags.join(", ")}
+                />
+                <Button type="submit" variant="outline" size="sm">
+                  <Save className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Save note
+                </Button>
+              </form>
+            </Card>
+          ) : null}
         </section>
 
         <aside className="space-y-3">
@@ -162,6 +199,7 @@ export default async function WatchPage({ params }: WatchPageProps) {
               {sameChannelVideos.map((relatedVideo) => (
                 <VideoCard
                   key={relatedVideo.id}
+                  returnTo={`/watch/${video.id}`}
                   video={{
                     ...relatedVideo,
                     saved: relatedVideo.savedBy.length > 0,

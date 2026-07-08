@@ -108,6 +108,7 @@ export default async function FeedPage({ searchParams }: FeedPageProps) {
           {videos.map((video) => (
             <VideoCard
               key={video.id}
+              returnTo="/feed"
               video={{
                 ...video,
                 saved: video.savedBy.length > 0,

@@ -1232,6 +1232,55 @@ curl http://localhost:3000/api/videos/<videoId>
 
 Notes:
 
-- Save/unsave actions remain disabled until Phase 6.
+- Save/unsave actions are implemented in Phase 6 below.
 - No new database migration was needed.
+- Typecheck/build verification could not be completed because the local `node_modules` directory is incomplete and the required `tsc`/`prisma` binaries are unavailable.
+
+### Phase 6 - Saved Videos
+
+Completed:
+
+- Added local-only save/unsave behavior backed by the existing `SavedVideo` table.
+- Added server actions for save toggle, remove saved video, and update saved video notes/tags.
+- Added shared saved-video access checks so only videos from the authenticated user's local subscription feed can be saved.
+- Enabled save/unsave buttons on feed video cards.
+- Enabled save/unsave on `/watch/[videoId]`.
+- Added a local note and tag editor on the watch page when a video is saved.
+- Rebuilt `/saved` as a real local reference library.
+- `/saved` lists saved videos newest-first, supports title/channel search, local notes, comma-separated tags, remove action, local watch links, and YouTube links.
+- Added `GET /api/saved`.
+- Added `POST /api/saved`.
+- Added `DELETE /api/saved/[videoId]`.
+- Added `PATCH /api/saved/[videoId]`.
+
+Run:
+
+```bash
+npm install
+npm run db:migrate
+npm run dev
+```
+
+Then:
+
+1. Sign in with Google.
+2. Sync subscriptions.
+3. Sync videos.
+4. Save a video from `/feed` or `/watch/[videoId]`.
+5. Open `/saved` to edit notes/tags or remove the saved video.
+
+API tests after sign-in:
+
+```bash
+curl http://localhost:3000/api/saved
+curl -X POST http://localhost:3000/api/saved
+curl -X PATCH http://localhost:3000/api/saved/<videoId>
+curl -X DELETE http://localhost:3000/api/saved/<videoId>
+```
+
+Notes:
+
+- Saved videos are stored only in the local Watch.local database.
+- The app does not write to YouTube Watch Later or request YouTube write permissions.
+- No new database migration was needed because the Phase 2 schema already included `SavedVideo`.
 - Typecheck/build verification could not be completed because the local `node_modules` directory is incomplete and the required `tsc`/`prisma` binaries are unavailable.

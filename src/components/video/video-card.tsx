@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Bookmark, ExternalLink } from "lucide-react";
+import { toggleSavedVideoAction } from "@/app/actions/saved";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatIsoDuration, formatRelativeDate } from "@/lib/date";
@@ -16,9 +17,10 @@ type VideoCardProps = {
       title: string;
     };
   };
+  returnTo?: string;
 };
 
-export function VideoCard({ video }: VideoCardProps) {
+export function VideoCard({ video, returnTo = "/feed" }: VideoCardProps) {
   const duration = formatIsoDuration(video.duration);
 
   return (
@@ -54,12 +56,21 @@ export function VideoCard({ video }: VideoCardProps) {
           </p>
         </div>
         <div className="flex items-center justify-between gap-2">
-          <Button variant="ghost" size="icon" aria-label="Save video" disabled>
-            <Bookmark
-              className={video.saved ? "h-4 w-4 fill-current" : "h-4 w-4"}
-              aria-hidden="true"
-            />
-          </Button>
+          <form action={toggleSavedVideoAction}>
+            <input type="hidden" name="videoId" value={video.id} />
+            <input type="hidden" name="returnTo" value={returnTo} />
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={video.saved ? "Unsave video" : "Save video"}
+              type="submit"
+            >
+              <Bookmark
+                className={video.saved ? "h-4 w-4 fill-current" : "h-4 w-4"}
+                aria-hidden="true"
+              />
+            </Button>
+          </form>
           <Button asChild variant="ghost" size="icon" aria-label="Open on YouTube">
             <Link href={`https://www.youtube.com/watch?v=${video.id}`} target="_blank">
               <ExternalLink className="h-4 w-4" aria-hidden="true" />
