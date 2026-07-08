@@ -1190,7 +1190,7 @@ Notes:
 - Each video sync fetches up to 10 latest videos per subscribed channel to keep quota usage reasonable.
 - If one channel fails, the sync records a partial error and continues with the other channels.
 - No new database migration was needed because the Phase 2 schema already included `Video` and upload playlist fields.
-- Dependency installation and runtime YouTube API testing were not completed in this environment because the local `node_modules` directory is incomplete and the required `tsc`/`prisma` binaries are unavailable.
+- Dependency installation, typecheck, lint, tests, production build, and Docker build now pass as of Phase 7.
 
 ### Phase 5 - Watch Page
 
@@ -1234,7 +1234,7 @@ Notes:
 
 - Save/unsave actions are implemented in Phase 6 below.
 - No new database migration was needed.
-- Typecheck/build verification could not be completed because the local `node_modules` directory is incomplete and the required `tsc`/`prisma` binaries are unavailable.
+- Typecheck, lint, tests, production build, and Docker build now pass as of Phase 7.
 
 ### Phase 6 - Saved Videos
 
@@ -1283,4 +1283,38 @@ Notes:
 - Saved videos are stored only in the local Watch.local database.
 - The app does not write to YouTube Watch Later or request YouTube write permissions.
 - No new database migration was needed because the Phase 2 schema already included `SavedVideo`.
-- Typecheck/build verification could not be completed because the local `node_modules` directory is incomplete and the required `tsc`/`prisma` binaries are unavailable.
+- Typecheck, lint, tests, production build, and Docker build now pass as of Phase 7.
+
+### Phase 7 - Polish and Hardening
+
+Completed:
+
+- Added authenticated app loading skeletons.
+- Added an authenticated app error boundary with a retry action.
+- Added a friendly not-found page for missing routes or unsynced videos.
+- Added a sync policy helper for quota-aware non-forced video sync decisions.
+- Manual feed refresh still forces a video sync, matching the MVP requirement.
+- Added basic sync policy tests with Node's built-in test runner.
+- Added `npm run test`.
+- Added `.eslintignore` for generated Next files.
+- Added `.dockerignore`, reducing Docker build context from hundreds of MB to a few KB.
+- Added `package-lock.json` now that dependencies install successfully.
+- Refreshed `package-lock.json` metadata.
+
+Verification:
+
+```bash
+npm run db:generate
+npm run test
+npm run typecheck
+npm run lint
+npm run build
+docker compose build
+```
+
+All commands passed.
+
+Notes:
+
+- The Docker build reported 3 moderate npm audit findings from installed dependencies. They were not auto-fixed because `npm audit fix --force` can introduce breaking upgrades.
+- Runtime Google OAuth and live YouTube API behavior still require real Google credentials in `.env`.

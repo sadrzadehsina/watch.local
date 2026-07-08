@@ -41,7 +41,7 @@ export async function syncVideosAction(formData?: FormData) {
   let errors = 0;
 
   try {
-    const result = await syncLatestVideosForUser(session.user.id);
+    const result = await syncLatestVideosForUser(session.user.id, { force: true });
     count = result.upsertedVideoCount;
     errors = result.errorCount;
   } catch (error) {

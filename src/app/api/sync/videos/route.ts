@@ -10,13 +10,14 @@ export async function POST() {
   }
 
   try {
-    const result = await syncLatestVideosForUser(session.user.id);
+    const result = await syncLatestVideosForUser(session.user.id, { force: true });
 
     return NextResponse.json({
       channelCount: result.channelCount,
       fetchedVideoCount: result.fetchedVideoCount,
       upsertedVideoCount: result.upsertedVideoCount,
       errorCount: result.errorCount,
+      skipped: result.skipped,
       syncedAt: result.syncedAt.toISOString(),
     });
   } catch (error) {

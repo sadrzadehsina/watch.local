@@ -5,9 +5,11 @@ import {
   fetchMySubscriptions,
   fetchVideoDetails,
 } from "@/lib/youtube";
+import { shouldRunSync, summarizeSyncErrors } from "@/lib/sync-policy";
 
 export const SUBSCRIPTIONS_SYNC_TYPE = "subscriptions";
 export const VIDEOS_SYNC_TYPE = "videos";
+const VIDEO_SYNC_INTERVAL_MS = 60 * 60 * 1000;
 
 export async function syncSubscriptionsForUser(userId: string) {
   await prisma.syncState.upsert({
@@ -115,6 +117,30 @@ export async function syncLatestVideosForUser(
   userId: string,
   options?: { force?: boolean; videosPerChannel?: number },
 ) {
+  const currentSyncState = await prisma.syncState.findUnique({
+    where: {
+      userId_type: {
+        userId,
+        type: VIDEOS_SYNC_TYPE,
+      },
+    },
+  });
+
+  if (
+    !shouldRunSync(currentSyncState?.lastSyncedAt, VIDEO_SYNC_INTERVAL_MS, {
+      force: options?.force,
+    })
+  ) {
+    return {
+      fetchedVideoCount: 0,
+      upsertedVideoCount: 0,
+      channelCount: 0,
+      errorCount: 0,
+      skipped: true,
+      syncedAt: currentSyncState?.lastSyncedAt ?? new Date(),
+    };
+  }
+
   await prisma.syncState.upsert({
     where: {
       userId_type: {
@@ -276,7 +302,7 @@ export async function syncLatestVideosForUser(
       data: {
         lastSyncedAt: syncedAt,
         status: syncErrors.length > 0 ? "partial" : "idle",
-        error: syncErrors.length > 0 ? syncErrors.slice(0, 5).join("\n") : null,
+        error: summarizeSyncErrors(syncErrors),
       },
     });
 
@@ -285,6 +311,7 @@ export async function syncLatestVideosForUser(
       upsertedVideoCount,
       channelCount: channels.length,
       errorCount: syncErrors.length,
+      skipped: false,
       syncedAt,
     };
   } catch (error) {
