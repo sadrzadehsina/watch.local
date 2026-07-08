@@ -7,12 +7,14 @@ services:
       - "80:3000"
       - "3000:3000"
     environment:
-      DATABASE_URL: postgresql://watch:watch@postgres:5432/watchlocal?schema=public
-      NEXTAUTH_URL: http://localhost:3000
-      NEXTAUTH_SECRET: replace-me
-      GOOGLE_CLIENT_ID: replace-me
-      GOOGLE_CLIENT_SECRET: replace-me
-      YOUTUBE_API_KEY: optional-for-public-requests
+      DATABASE_URL: ${DATABASE_URL:-postgresql://watch:watch@postgres:5432/watchlocal?schema=public}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-replace-me}
+      AUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      AUTH_SECRET: ${NEXTAUTH_SECRET:-replace-me}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-replace-me}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-replace-me}
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-optional-for-public-requests}
     volumes:
       - .:/app
       - /app/node_modules
