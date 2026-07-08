@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 99%;
+    --foreground: 220 13% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 12%;
+    --primary: 220 14% 15%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 210 20% 94%;
+    --secondary-foreground: 220 13% 12%;
+    --muted: 210 18% 94%;
+    --muted-foreground: 220 9% 42%;
+    --accent: 178 38% 88%;
+    --accent-foreground: 190 40% 17%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 214 16% 86%;
+    --input: 214 16% 86%;
+    --ring: 190 44% 40%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 220 13% 9%;
+    --foreground: 210 20% 96%;
+    --card: 220 13% 12%;
+    --card-foreground: 210 20% 96%;
+    --primary: 210 20% 96%;
+    --primary-foreground: 220 13% 10%;
+    --secondary: 220 11% 18%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 220 11% 18%;
+    --muted-foreground: 215 12% 66%;
+    --accent: 186 31% 20%;
+    --accent-foreground: 184 32% 87%;
+    --destructive: 0 63% 45%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 10% 22%;
+    --input: 220 10% 22%;
+    --ring: 184 46% 48%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+}

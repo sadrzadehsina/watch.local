@@ -1,0 +1,35 @@
+services:
+  app:
+    build:
+      context: .
+    command: npm run dev
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://watch:watch@postgres:5432/watchlocal?schema=public
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: replace-me
+      GOOGLE_CLIENT_ID: replace-me
+      GOOGLE_CLIENT_SECRET: replace-me
+      YOUTUBE_API_KEY: optional-for-public-requests
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: watch
+      POSTGRES_PASSWORD: watch
+      POSTGRES_DB: watchlocal
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:
